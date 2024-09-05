@@ -1,7 +1,7 @@
-streamlit==1.17.0  # Downgrade to a version compatible with requests==2.23.0
+streamlit==1.38.0
 pandas==2.2.2
 plotly==5.24.0
-Pillow==9.4.0
+Pillow==8.4.0  # Ensure this version is compatible
 textblob==0.18.0.post0
 app-store-scraper==0.3.5
 google-play-scraper==1.2.7
