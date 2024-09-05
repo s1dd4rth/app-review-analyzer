@@ -24,6 +24,17 @@ POLARITY_THRESHOLD = 0.1
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# --- Initialization ---
+import subprocess
+import sys
+
+def upgrade_pip():
+    """Upgrades pip to the latest version."""
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
+
+# Call the upgrade function
+upgrade_pip()
+
 # --- URL Parsing and Validation Functions ---
 
 def parse_app_store_url(url):
