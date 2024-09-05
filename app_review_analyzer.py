@@ -19,7 +19,7 @@ MAX_REVIEWS = 5000
 MIN_REVIEWS = 100
 DEFAULT_REVIEWS = 1000
 POLARITY_THRESHOLD = 0.1
-MIN_YEAR = 2000  # Added constant for minimum year
+MIN_YEAR = 2000 
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
