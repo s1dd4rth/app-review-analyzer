@@ -1,0 +1,8 @@
+streamlit
+pandas
+plotly
+textblob
+app-store-scraper
+google-play-scraper
+tqdm
+requests
