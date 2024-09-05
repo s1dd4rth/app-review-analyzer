@@ -1,6 +1,7 @@
 streamlit
 pandas
-plotly==5.3.1
+plotly
+pillow
 textblob
 app-store-scraper
 google-play-scraper
