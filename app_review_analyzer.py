@@ -19,21 +19,11 @@ MAX_REVIEWS = 5000
 MIN_REVIEWS = 100
 DEFAULT_REVIEWS = 1000
 POLARITY_THRESHOLD = 0.1
+MIN_YEAR = 2000  # Added constant for minimum year
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# --- Initialization ---
-import subprocess
-import sys
-
-def upgrade_pip():
-    """Upgrades pip to the latest version."""
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
-
-# Call the upgrade function
-upgrade_pip()
 
 # --- URL Parsing and Validation Functions ---
 
@@ -146,8 +136,8 @@ def fetch_play_store_reviews(package_name, how_many, start_year, end_year):
 def validate_years(start_year, end_year):
     """Validates the input years."""
     current_year = datetime.now().year
-    if start_year < 2000 or end_year > current_year:
-        raise ValueError(f"Years must be between 2000 and {current_year}")
+    if start_year < MIN_YEAR or end_year > current_year:
+        raise ValueError(f"Years must be between {MIN_YEAR} and {current_year}")
     if start_year > end_year:
         raise ValueError("Start year must be less than or equal to end year")
 
@@ -190,6 +180,20 @@ def create_trend_chart(df):
     fig.update_yaxes(title="Number of Reviews")
     return fig
 
+def extract_review_data(review, store_type):
+    """Extracts date, rating, and content from a review based on store type."""
+    if store_type == "App Store":
+        date = review.get('date')
+        rating = review.get('rating')
+        content = review.get('review', '')
+    else:  # Play Store
+        date = review.get('at')
+        if isinstance(date, (int, float)):
+            date = datetime.fromtimestamp(date)
+        rating = review.get('score')
+        content = review.get('content', '')
+    return date, rating, content
+
 def fetch_and_analyze_reviews(store_type: str, app_url: str, start_year: int, end_year: int, max_reviews: int) -> List[Dict[str, Any]]:
     try:
         if store_type == "App Store":
@@ -208,16 +212,7 @@ def fetch_and_analyze_reviews(store_type: str, app_url: str, start_year: int, en
 
         review_data = []
         for review in reviews:
-            if store_type == "App Store":
-                date = review.get('date')
-                rating = review.get('rating')
-                content = review.get('review', '')
-            else:  # Play Store
-                date = review.get('at')
-                if isinstance(date, (int, float)):
-                    date = datetime.fromtimestamp(date)
-                rating = review.get('score')
-                content = review.get('content', '')
+            date, rating, content = extract_review_data(review, store_type)  # Refactored extraction logic
             
             if date and rating is not None:
                 sentiment = analyze_sentiment(content, rating)
@@ -229,6 +224,10 @@ def fetch_and_analyze_reviews(store_type: str, app_url: str, start_year: int, en
                 })
         
         return review_data
+    except ValueError as ve:
+        st.error(f"Validation error: {str(ve)}")  # More specific error handling
+        logger.error(f"Validation error: {ve}", exc_info=True)
+        return []
     except Exception as e:
         st.error(f"An error occurred while fetching and analyzing reviews: {str(e)}")
         logger.error(f"Error details: {e}", exc_info=True)
@@ -241,8 +240,8 @@ def main():
 
     store_type = st.radio("Select the app store:", ("App Store", "Play Store"))
     app_url = st.text_input("Paste the app URL:")
-    start_year = st.number_input("Start Year:", min_value=2000, max_value=datetime.now().year, value=datetime.now().year - 1)
-    end_year = st.number_input("End Year:", min_value=2000, max_value=datetime.now().year, value=datetime.now().year)
+    start_year = st.number_input("Start Year:", min_value=MIN_YEAR, max_value=datetime.now().year, value=datetime.now().year - 1)
+    end_year = st.number_input("End Year:", min_value=MIN_YEAR, max_value=datetime.now().year, value=datetime.now().year)
     max_reviews = st.number_input("Maximum number of reviews to fetch:", min_value=MIN_REVIEWS, max_value=MAX_REVIEWS, value=DEFAULT_REVIEWS, step=100)
 
     if st.button("Analyze Reviews"):
